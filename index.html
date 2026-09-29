@@ -21,7 +21,6 @@ body{margin:0;background:var(--bg);color:var(--tx);line-height:1.62;
 .nv{flex:0 0 auto;text-decoration:none;font-size:13px;font-weight:700;padding:9px 15px;border-radius:999px;
  background:var(--sf);border:1px solid var(--ln);color:var(--tx);white-space:nowrap;box-shadow:var(--sh)}
 .nv.on{background:var(--ac);color:#fff;border-color:var(--ac)}
-.nv.lock{opacity:.55;border-style:dashed}
 .wrap{max-width:1200px;margin:0 auto;padding:0 14px calc(60px + env(safe-area-inset-bottom))}
 
 /* ── hero ── */
@@ -106,6 +105,30 @@ a.gm:active{background:var(--ac);color:#fff}
 .card dd{margin:0;word-break:keep-all;overflow-wrap:anywhere}
 .empty{text-align:center;color:var(--mu);padding:30px 10px;font-size:14px}
 
+
+.planbar{display:flex;align-items:center;gap:7px;overflow-x:auto;scrollbar-width:none;background:var(--sf);
+ border:1px solid var(--ln);border-radius:13px;box-shadow:var(--sh);padding:10px 13px;margin:0 0 14px}
+.planbar::-webkit-scrollbar{display:none}
+.planbar .pl{font-size:12.5px;font-weight:800;white-space:nowrap;color:var(--mu)}
+.planbar .pd{flex:0 0 auto;font-size:12.5px;font-weight:700;background:var(--sf2);border:1px solid var(--ln);
+ border-radius:999px;padding:5px 11px;white-space:nowrap}
+.planbar .pd b{color:var(--ac)}
+.planbar .pd.z{opacity:.45}
+.planbar .pd{cursor:pointer;user-select:none}
+.planbar .pd.sel{background:var(--ac);border-color:var(--ac);color:#fff;opacity:1}
+.planbar .pd.sel b{color:#fff}
+.planbar a{margin-left:auto;flex:0 0 auto;text-decoration:none;font-size:12.5px;font-weight:800;
+ background:var(--ac);color:#fff;border-radius:9px;padding:7px 13px;white-space:nowrap}
+.days{display:flex;align-items:center;gap:5px;margin-top:11px;padding-top:11px;border-top:1px dashed var(--ln)}
+.days .dl{font-size:11px;font-weight:800;color:var(--mu);margin-right:2px}
+.dy{width:32px;height:32px;border-radius:9px;border:1px solid var(--ln);background:var(--sf2);
+ color:var(--tx);font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;padding:0}
+.dy.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.nv2{margin-left:auto;text-decoration:none;font-size:12px;font-weight:800;padding:7px 11px;border-radius:9px;
+ background:var(--sf2);border:1px solid var(--ln);color:var(--ac);white-space:nowrap}
+.card.planned{border-color:color-mix(in srgb,var(--ac) 45%,var(--ln))}
+.card.planned .cn::after{content:attr(data-day);margin-left:6px;font-size:10.5px;font-weight:800;
+ background:var(--ac);color:#fff;border-radius:5px;padding:2px 6px;vertical-align:2px}
 .note{border-left:4px solid var(--ac);background:var(--sf2);border-radius:0 11px 11px 0;padding:13px 16px;margin:0 0 16px;font-size:13px;line-height:1.6}
 .note b{font-weight:700}
 footer{border-top:1px solid var(--ln);margin-top:34px;padding-top:16px;color:var(--mu);font-size:12px;line-height:1.65}
@@ -125,7 +148,6 @@ footer{border-top:1px solid var(--ln);margin-top:34px;padding-top:16px;color:var
   <a class="nv" href="shuttle.md">🚌 시기라 셔틀</a>
   <a class="nv" href="glossary.md">🧭 기초 지식</a>
   <a class="nv" href="map.kml" download>📥 구글맵용 KML</a>
-  <a class="nv lock" href="https://github.com/dev-0ju/miyakojima-trip" title="비공개 저장소 — 소유자만 열립니다" target="_blank" rel="noopener">🔒 준비 자료</a>
 </div>
 
 <div class="mapbox">
@@ -157,6 +179,14 @@ footer{border-top:1px solid var(--ln);margin-top:34px;padding-top:16px;color:var
   <p class="hint">칩을 눌러 켜고 끌 수 있습니다 · 마커 테두리가 <b>점선</b>이면 주소 기준 근사 위치이니 <b>지도</b> 버튼으로 확인하세요</p>
 </div>
 
+<div class="planbar" id="planbar">
+  <span class="pl">📅 내 일정</span>
+  <span class="pd z" data-pd="1">1일차 <b>0</b></span>
+  <span class="pd z" data-pd="2">2일차 <b>0</b></span>
+  <span class="pd z" data-pd="3">3일차 <b>0</b></span>
+  <span class="pd z" data-pd="4">4일차 <b>0</b></span>
+  <a href="nav.html#plan">일정 보기 →</a>
+</div>
 <div id="list"></div>
 
 <footer>
@@ -185,7 +215,7 @@ function apply(){svg.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);con
   pins.querySelectorAll('.mk').forEach(g=>g.setAttribute('transform',g.dataset.tf+' scale('+k+')'));
   labels.querySelectorAll('text').forEach(t=>{t.style.fontSize=(11*k)+'px';t.style.strokeWidth=(4*k)+'px';});}
 const hay=p=>[p.n,p.ja,p.g,p.d,p.m,p.p,p.h,p.r].join(' ').toLowerCase();
-const vis=p=>st.area[p.c]&&st[p.k]&&(!st.q||hay(p).includes(st.q));
+const vis=p=>st.area[p.c]&&st[p.k]&&(!st.q||hay(p).includes(st.q))&&(!st.day||dayOf(p.n)===st.day);
 D.pts.forEach((p,i)=>{
   const c=AR[p.c]||{color:'#888'};
   const g=document.createElementNS(NS,'g');
@@ -240,7 +270,7 @@ function build(){
           +'<div class="cj">'+esc(p.ja)+'</div>'
           +'<div class="tags"><span class="tg" style="background:'+c.color+'">'+c.label+'</span><span class="tg2">'+esc(p.g)+'</span>'
           +(p.a==='approx'?'<span class="tg2">📍 근사 위치</span>':'')+'</div>'
-          +'<dl>'+dl+'</dl></article>';
+          +'<dl>'+dl+'</dl>'+'<div class="days" data-n="'+esc(p.n)+'"><span class="dl">일정</span>'+[1,2,3,4].map(x=>'<button class="dy" data-d="'+x+'">'+x+'</button>').join('')+'<a class="nv2" href="https://www.google.com/maps/dir/?api=1&destination='+p.lat+','+p.lon+'&travelmode=driving" target="_blank" rel="noopener">🧭 길찾기</a>'+'</div></article>';
       });
       h+='</div>';
     });
@@ -317,6 +347,36 @@ window.addEventListener('resize',fit);
 const topBtn=document.getElementById('top');
 topBtn.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
 addEventListener('scroll',()=>topBtn.classList.toggle('on',scrollY>600),{passive:true});
-build();fit();sync();
+
+/* ── 일정(1~4일차) ── */
+const PK='miyako-plan';
+let PLAN={1:[],2:[],3:[],4:[]};
+try{const r=localStorage.getItem(PK);if(r){const o=JSON.parse(r);[1,2,3,4].forEach(d=>{if(Array.isArray(o[d]))PLAN[d]=o[d];});}}catch(_){}
+function savePlan(){try{localStorage.setItem(PK,JSON.stringify(PLAN))}catch(_){}}
+function dayOf(n){for(const d of[1,2,3,4])if(PLAN[d].indexOf(n)>=0)return d;return 0;}
+function setDay(n,d){const cur=dayOf(n);
+  [1,2,3,4].forEach(x=>{PLAN[x]=PLAN[x].filter(v=>v!==n);});
+  if(cur!==d)PLAN[d].push(n);
+  savePlan();paintPlan();if(st.day)sync();}
+function paintPlan(){
+  document.querySelectorAll('.days').forEach(el=>{
+    const n=el.dataset.n,d=dayOf(n);
+    el.querySelectorAll('.dy').forEach(b=>b.classList.toggle('on',+b.dataset.d===d));
+    const card=el.closest('.card');card.classList.toggle('planned',!!d);
+    const cn=card.querySelector('.cn');
+    if(d)cn.setAttribute('data-day',d+'일차');else cn.removeAttribute('data-day');});
+  [1,2,3,4].forEach(d=>{const e=document.querySelector('[data-pd="'+d+'"]');
+    if(e){e.querySelector('b').textContent=PLAN[d].length;e.classList.toggle('z',!PLAN[d].length);}});}
+document.getElementById('planbar').addEventListener('click',e=>{
+  const c=e.target.closest('.pd');if(!c)return;
+  const d=+c.dataset.pd;
+  st.day=(st.day===d)?0:d;
+  document.querySelectorAll('.planbar .pd').forEach(x=>x.classList.toggle('sel',+x.dataset.pd===st.day));
+  sync();});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('.dy');if(!b)return;
+  e.stopPropagation();setDay(b.closest('.days').dataset.n,+b.dataset.d);},true);
+
+build();fit();sync();paintPlan();
 </script>
 </body></html>

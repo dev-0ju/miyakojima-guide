@@ -49,6 +49,24 @@ header{position:sticky;top:0;z-index:40;background:var(--sf);border-bottom:1px s
 .act .go{background:var(--ac);color:#fff}
 .act .op{background:var(--sf2);color:var(--tx);border:1px solid var(--ln)}
 
+
+.modes{display:flex;gap:6px;padding:0 13px 10px}
+.md{flex:1;border:1px solid var(--ln);background:var(--sf2);border-radius:10px;padding:9px;font-size:13px;
+ font-weight:800;color:var(--tx);font-family:inherit;cursor:pointer}
+.md.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.dayhd{display:flex;align-items:center;gap:8px;margin:20px 0 9px}
+.dayhd .bg{background:var(--ac);color:#fff;border-radius:9px;padding:5px 12px;font-size:13px;font-weight:900}
+.dayhd .c{font-size:11.5px;color:var(--mu);font-weight:700}
+.dayhd .rt{margin-left:auto;text-decoration:none;font-size:11.5px;font-weight:800;background:var(--sf2);
+ border:1px solid var(--ln);color:var(--ac);border-radius:8px;padding:6px 10px;white-space:nowrap}
+.pnum{flex:0 0 auto;width:22px;height:22px;border-radius:50%;background:var(--ac);color:#fff;
+ font-size:11.5px;font-weight:900;display:grid;place-items:center;margin-top:1px}
+.ctl2{display:flex;gap:5px;margin-left:auto}
+.ctl2 button{width:30px;height:30px;border-radius:8px;border:1px solid var(--ln);background:var(--sf2);
+ color:var(--mu);font-size:13px;cursor:pointer;font-family:inherit;padding:0}
+.ctl2 button.rm{color:var(--co)}
+.dayempty{border:1px dashed var(--ln);border-radius:12px;padding:20px;text-align:center;color:var(--mu);font-size:13px;margin-bottom:9px}
+.dayempty a{font-weight:800}
 main{max-width:900px;margin:0 auto;padding:12px 13px calc(80px + env(safe-area-inset-bottom))}
 .grp{font-size:12.5px;font-weight:800;color:var(--mu);margin:16px 0 8px;display:flex;align-items:center;gap:7px}
 .grp .bar{height:3px;width:18px;border-radius:99px}
@@ -86,6 +104,7 @@ footer{border-top:1px solid var(--ln);margin-top:26px;padding-top:15px;color:var
       <input id="q" type="search" placeholder="가게·장소·메뉴 검색" autocomplete="off">
       <button class="clr" id="qx">×</button></div>
   </div>
+  <div class="modes"><button class="md on" id="mAll">🗺 전체 목록</button><button class="md" id="mPlan">📅 내 일정 <span id="pcnt"></span></button></div>
   <div class="chips" id="chips"></div>
 </header>
 
@@ -104,6 +123,7 @@ footer{border-top:1px solid var(--ln);margin-top:26px;padding-top:15px;color:var
     ⚠️ 이 페이지는 <b>인터넷이 필요합니다.</b> 오프라인으로 보시려면 <a href="./">가이드 페이지</a>를 쓰세요.
   </div>
   <div id="list"></div>
+  <div id="plan" style="display:none"></div>
   <p class="empty" id="empty" style="display:none">조건에 맞는 곳이 없습니다</p>
   <footer>
     <p>구글 지도 임베드를 사용합니다 · 좌표 출처 <b>OpenStreetMap</b> (© OpenStreetMap contributors, ODbL)</p>
@@ -165,6 +185,7 @@ function pick(i){const p=D.pts[i];sel=i;
   document.getElementById('aGo').href=dir(p);
   document.getElementById('aOp').href=open_(p);
   list.querySelectorAll('.row').forEach(el=>el.classList.toggle('sel',+el.dataset.i===i));
+  document.querySelectorAll('#plan .row').forEach(el=>el.classList.toggle('sel',+el.dataset.i===i));
   window.scrollTo({top:0,behavior:'smooth'});
   try{localStorage.setItem('mnav',i)}catch(_){}}
 function paint(){paintChips();let n=0;
@@ -182,6 +203,63 @@ qx.onclick=()=>{q.value='';st.q='';qx.classList.remove('on');paint();q.focus();}
 const tp=document.getElementById('top');tp.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
 addEventListener('scroll',()=>tp.classList.toggle('on',scrollY>500),{passive:true});
 build();paint();
+
+/* ── 일정 모드 ── */
+const PK='miyako-plan';
+let PLAN={1:[],2:[],3:[],4:[]};
+function loadPlan(){try{const r=localStorage.getItem(PK);if(r){const o=JSON.parse(r);
+  [1,2,3,4].forEach(d=>{PLAN[d]=Array.isArray(o[d])?o[d]:[];});}}catch(_){}}
+function savePlan(){try{localStorage.setItem(PK,JSON.stringify(PLAN))}catch(_){}}
+const byName={};D.pts.forEach((p,i)=>byName[p.n]=i);
+function planTotal(){return [1,2,3,4].reduce((s,d)=>s+PLAN[d].length,0);}
+function renderPlan(){
+  const el=document.getElementById('plan');let h='';
+  [1,2,3,4].forEach(d=>{
+    const arr=PLAN[d].filter(n=>byName[n]!==undefined);
+    h+='<div class="dayhd"><span class="bg">'+d+'일차</span><span class="c">'+arr.length+'곳</span>';
+    if(arr.length>1){const pts=arr.map(n=>D.pts[byName[n]]);
+      const wp=pts.slice(0,-1).map(p=>p.lat+','+p.lon).join('|');
+      const last=pts[pts.length-1];
+      h+='<a class="rt" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination='
+        +last.lat+','+last.lon+'&waypoints='+encodeURIComponent(wp)+'&travelmode=driving">🗺 전체 경로</a>';}
+    h+='</div>';
+    if(!arr.length){h+='<div class="dayempty">아직 비어 있습니다<br><a href="./">가이드에서 장소를 추가</a>하세요</div>';return;}
+    arr.forEach((n,k)=>{const i=byName[n],p=D.pts[i],c=AR[p.c]||{color:'#888'};
+      h+='<article class="row" data-i="'+i+'" data-d="'+d+'" data-k="'+k+'">'
+        +'<div class="r1"><span class="pnum">'+(k+1)+'</span><div class="tt"><div class="n">'+p.ic+' '+esc(p.n)+'</div>'
+        +'<div class="j">'+esc(p.ja)+'</div></div>'
+        +'<div class="ctl2"><button class="up" title="위로">↑</button><button class="dn" title="아래로">↓</button>'
+        +'<button class="rm" title="빼기">✕</button></div></div>'
+        +'<div class="r3"><a class="go" href="'+dir(p)+'" target="_blank" rel="noopener">🧭 길찾기</a>'
+        +'<a class="op" href="'+open_(p)+'" target="_blank" rel="noopener">📍 구글맵 앱</a></div></article>';});});
+  el.innerHTML=h;
+  document.getElementById('pcnt').textContent=planTotal()?'('+planTotal()+')':'';
+}
+document.getElementById('plan').addEventListener('click',e=>{
+  const row=e.target.closest('.row');if(!row)return;
+  const d=+row.dataset.d,k=+row.dataset.k;
+  if(e.target.closest('.up')){if(k>0){const a=PLAN[d];[a[k-1],a[k]]=[a[k],a[k-1]];savePlan();renderPlan();}return;}
+  if(e.target.closest('.dn')){const a=PLAN[d];if(k<a.length-1){[a[k+1],a[k]]=[a[k],a[k+1]];savePlan();renderPlan();}return;}
+  if(e.target.closest('.rm')){PLAN[d].splice(k,1);savePlan();renderPlan();return;}
+  if(e.target.closest('a'))return;
+  pick(+row.dataset.i);});
+const mAll=document.getElementById('mAll'),mPlan=document.getElementById('mPlan');
+function mode(m){const pl=m==='plan';
+  mAll.classList.toggle('on',!pl);mPlan.classList.toggle('on',pl);
+  document.getElementById('list').style.display=pl?'none':'';
+  document.getElementById('plan').style.display=pl?'':'none';
+  document.querySelector('.chips').style.display=pl?'none':'';
+  document.querySelector('.srch').style.display=pl?'none':'';
+  if(pl){loadPlan();renderPlan();}
+  try{localStorage.setItem('mnav-mode',m)}catch(_){}}
+mAll.onclick=()=>mode('all');mPlan.onclick=()=>mode('plan');
+loadPlan();renderPlan();
+addEventListener('pageshow',()=>{loadPlan();renderPlan();});
+let m0='all';
+try{const v=localStorage.getItem('mnav-mode');if(v)m0=v;}catch(_){}
+if(location.hash==='#plan')m0='plan';
+mode(m0);
+
 let init=D.pts.findIndex(p=>p.c==='base'&&p.g==='숙소');
 try{const k=localStorage.getItem('mnav');if(k!==null&&D.pts[+k])init=+k;}catch(_){}
 pick(init>=0?init:0);
