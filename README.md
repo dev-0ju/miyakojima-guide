@@ -20,6 +20,7 @@
 | 파일 | 내용 |
 |---|---|
 | **[index.html](https://dev-0ju.github.io/miyakojima-guide/)** | 지도 + 식당·관광지 전체 목록 |
+| **[nav.html](https://dev-0ju.github.io/miyakojima-guide/nav.html)** | 🧭 **구글맵 내비** — 장소를 탭하면 구글 지도가 바로 이동하고, **길찾기 한 번으로 내비 실행**. 현장에서 쓰는 페이지 (인터넷 필요) |
 | **[shuttle.md](shuttle.md)** | 시기라 리조트 **무료 순환버스 시간표**(정류장 11개, 양방향)와 정류장별 식당 목록. 공식이 PDF로만 제공하는 자료를 표로 옮긴 것 |
 | **[glossary.md](glossary.md)** | 비치 3분류(스노클용·수영용·전망용) · 메뉴판 단어 15개 · 주문할 때 알아둘 것 |
 | **[map.kml](map.kml)** | 구글 마이맵 임포트용 — 폰 구글맵에서 73곳을 그대로 볼 수 있습니다 |
